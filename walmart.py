@@ -34,7 +34,7 @@ Original file is located at
 # st.set_page_config(page_title="Walmart ", layout="wide")
 # 
 # with st.sidebar:
-#     st.image("walmart.png", use_container_width=True)
+#
 # 
 #     st.markdown("📌 Panel de Control")
 # 
