@@ -29,12 +29,6 @@ except Exception as e:
 st.set_page_config(page_title="Walmart Admin Pro", layout="wide")
 
 with st.sidebar:
-    # Si no tienes el archivo 'walmart.png' subido a GitHub, 
-    # cambiamos st.image por un título de texto para evitar que la app falle.
-    try:
-        st.image("walmart.png", use_container_width=True)
-    except Exception:
-        st.title("🛒 Walmart Admin")
 
     st.markdown("### 📌 Panel de Control")
 
