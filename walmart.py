@@ -394,6 +394,3 @@ Original file is located at
 #                 coleccion_prod.delete_one({"_id": prod_a_borrar["_id"]})
 #                 st.success(f"Artículo '{prod_a_borrar['nombre']}' eliminado.")
 #                 st.rerun()
-
-!nohup streamlit run app.py &
-!npx localtunnel --port 8501 & curl ipv4.icanhazip.com
