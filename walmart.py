@@ -8,389 +8,397 @@ Original file is located at
 """
 
 
-# Commented out IPython magic to ensure Python compatibility.
-# %%writefile app.py
-# import streamlit as st
-# from pymongo import MongoClient
-# from bson.objectid import ObjectId
-# import pandas as pd
-# from datetime import datetime
-# 
-# URI = "mongodb+srv://dreamgood:elmdelaw@cluster0.bwicjno.mongodb.net/?appName=Cluster0"
-# 
-# @st.cache_resource
-# def init_connection():
-#     return MongoClient(URI)
-# 
-# try:
-#     cliente_mongo = init_connection()
-#     db = cliente_mongo["walmart"]
-#     coleccion_prod = db["productos"]
-#     coleccion_ventas = db["ventas"]
-#     coleccion_clientes = db["clientes"]
-# except Exception as e:
-#     st.error(f"Error al conectar la Base de Datos: {e}")
-# 
-# st.set_page_config(page_title="Walmart ", layout="wide")
-# 
-# with st.sidebar:
-#
-# 
-#     st.markdown("📌 Panel de Control")
-# 
-#     menu_principal = st.radio(
-#         "Navegación",
-#         ["👥 Clientes", "📈 Ventas", "📦 Productos"],
-#         label_visibility="collapsed"
-#     )
-#     st.markdown("---")
-#     st.caption("Fecha: 12/6/2026")
-#     st.caption("Usuario: Dream_god")
-# 
-# try:
-#     productos_en_base = list(coleccion_prod.find())
-#     clientes_en_base = list(coleccion_clientes.find())
-#     ventas_en_base = list(coleccion_ventas.find())
-# except Exception as e:
-#     productos_en_base, clientes_en_base, ventas_en_base = [], [], []
-# 
-# if menu_principal == "👥 Clientes":
-#     st.title("👥 Registro de Clientes")
-#     st.write("Registro de todos los clientes que compran y reclaman.")
-#     st.markdown("---")
-# 
-#     tab_c_ver, tab_c_nuevo, tab_c_editar, tab_c_frecuentes = st.tabs([
-#         "🔍 Catálogo Clientes", "➕ Cliente Nuevo", "✏️ Editar Cliente", "📊 Clientes Mas Frecuentes"
-#     ])
-# 
-#     with tab_c_ver:
-#         st.subheader("Clientes")
-#         if clientes_en_base:
-#             proporciones_c = [0.6, 1.5, 1.5, 1.2, 2.2, 0.8, 1.0, 2.5]
-#             cols_header_c = st.columns(proporciones_c)
-#             cols_header_c[0].markdown("**ID**")
-#             cols_header_c[1].markdown("**Nombre**")
-#             cols_header_c[2].markdown("**Apellido**")
-#             cols_header_c[3].markdown("**Teléfono**")
-#             cols_header_c[4].markdown("**Correo**")
-#             cols_header_c[5].markdown("**Edad**")
-#             cols_header_c[6].markdown("**Género**")
-#             cols_header_c[7].markdown("**Dirección**")
-#             st.markdown("---")
-# 
-#             for doc in clientes_en_base:
-#                 cols_row_c = st.columns(proporciones_c)
-#                 cols_row_c[0].write(str(doc.get('id', '')))
-#                 cols_row_c[1].write(doc.get('nombre', ''))
-#                 cols_row_c[2].write(doc.get('apellido', ''))
-#                 cols_row_c[3].write(doc.get('telefono', ''))
-#                 cols_row_c[4].write(doc.get('correo', ''))
-#                 cols_row_c[5].write(str(doc.get('edad', '')))
-#                 cols_row_c[6].write(doc.get('genero', ''))
-#                 cols_row_c[7].write(doc.get('direccion', ''))
-# 
-#     with tab_c_nuevo:
-#         st.subheader("Registro")
-#         with st.form("form_clientes_nuevo"):
-#             col1, col2 = st.columns(2)
-#             with col1:
-#                 c_id = st.number_input("ID de Cliente", min_value=1, step=1, value=len(clientes_en_base) + 1)
-#                 c_nombre = st.text_input("Nombre:", placeholder="Ej. Juan")
-#                 c_apellido = st.text_input("Apellido:", placeholder="Ej. Perez")
-#                 c_telefono = st.text_input("Telefono:", placeholder="Ej. 7471110001")
-#             with col2:
-#                 c_correo = st.text_input("Correo:", placeholder="Ej. juan.perez@gmail.com")
-#                 c_edad = st.number_input("Edad:", min_value=1, max_value=120, value=28)
-#                 c_genero = st.selectbox("Genero:", ["Masculino", "Femenino"])
-#                 c_direccion = st.text_input("Direccion:", value="Chilpancingo, Guerrero")
-# 
-#             enviar_cliente = st.form_submit_button("Registrar")
-#             if enviar_cliente:
-#                 if c_nombre.strip() == "" or c_apellido.strip() == "":
-#                     st.error("Nombre y apellido obligatorios.")
-#                 else:
-#                     coleccion_clientes.insert_one({
-#                         "id": int(c_id), "nombre": c_nombre, "apellido": c_apellido,
-#                         "telefono": c_telefono, "correo": c_correo, "edad": int(c_edad),
-#                         "genero": c_genero, "direccion": c_direccion
-#                     })
-#                     st.success(f"El cliente '{c_nombre} {c_apellido}' ha sido registrado!")
-#                     st.rerun()
-# 
-#     with tab_c_editar:
-#         st.subheader("Editar Informacin Cliente")
-#         if clientes_en_base:
-#             opciones_clientes = {f"{c.get('nombre', '')} {c.get('apellido', '')} (ID: {c.get('id', '')})": c for c in clientes_en_base}
-#             seleccion_c = st.selectbox("Cliente a editar:", opciones_clientes.keys())
-#             cliente_actual = opciones_clientes[seleccion_c]
-# 
-#             with st.form("form_clientes_editar"):
-#                 col1, col2 = st.columns(2)
-#                 with col1:
-#                     edit_c_nombre = st.text_input("Nombre", value=cliente_actual.get('nombre', ''))
-#                     edit_c_apellido = st.text_input("Apellido", value=cliente_actual.get('apellido', ''))
-#                     edit_c_telefono = st.text_input("Telefono", value=cliente_actual.get('telefono', ''))
-#                 with col2:
-#                     edit_c_correo = st.text_input("Correo", value=cliente_actual.get('correo', ''))
-#                     edit_c_edad = st.number_input("Edad", min_value=1, max_value=120, value=int(cliente_actual.get('edad', 25)))
-#                     edit_c_genero = st.selectbox("Genero", ["Masculino", "Femenino"], index=["Masculino", "Femenino"].index(cliente_actual.get('genero', 'Masculino')) if cliente_actual.get('genero', 'Masculino') in ["Masculino", "Femenino"] else 0)
-#                     edit_c_direccion = st.text_input("Direccion", value=cliente_actual.get('direccion', ''))
-# 
-#                 if st.form_submit_button("Guardar"):
-#                     coleccion_clientes.update_one(
-#                         {"_id": cliente_actual["_id"]},
-#                         {"$set": {
-#                             "nombre": edit_c_nombre, "apellido": edit_c_apellido,
-#                             "telefono": edit_c_telefono, "correo": edit_c_correo,
-#                             "edad": int(edit_c_edad), "genero": edit_c_genero,
-#                             "direccion": edit_c_direccion
-#                         }}
-#                     )
-#                     st.success("¡Se ha actualizado correctamente!")
-#                     st.rerun()
-# 
-#     with tab_c_frecuentes:
-#         st.subheader("Clientes Frecuentes")
-#         if ventas_en_base:
-#             df_v = pd.DataFrame(ventas_en_base)
-#             if 'cliente' in df_v.columns:
-#                 conteo_compras = df_v['cliente'].value_counts().reset_index()
-#                 conteo_compras.columns = ['Cliente', 'Total de Compras']
-#                 monto_total = df_v.groupby('cliente')['precio'].sum().reset_index()
-#                 monto_total.columns = ['Cliente', 'Monto Total Invertido ($)']
-#                 tabla_frecuentes = pd.merge(conteo_compras, monto_total, on='Cliente').sort_values(by='Total de Compras', ascending=False)
-#                 st.dataframe(tabla_frecuentes, use_container_width=True)
-# 
-# elif menu_principal == "📈 Ventas":
-#     st.title("📈 Tickets de Ventas")
-#     st.write("Lista de todas las ventas en el Walmart.")
-#     st.markdown("---")
-# 
-#     tab_v_ver, tab_v_nueva, tab_v_editar, tab_v_total = st.tabs([
-#         "🔍 Catalogo Visual", "➕ Venta Nueva", "✏️ Editar Venta", "📊 Total de Ventas"
-#     ])
-# 
-#     with tab_v_ver:
-#         st.subheader("Tickets")
-#         if ventas_en_base:
-#             proporciones_v = [0.6, 2.0, 2.0, 0.9, 1.2, 1.4, 1.2, 1.4]
-#             cols_header_v = st.columns(proporciones_v)
-#             cols_header_v[0].markdown("**ID**")
-#             cols_header_v[1].markdown("**Cliente**")
-#             cols_header_v[2].markdown("**Producto**")
-#             cols_header_v[3].markdown("**Cant.**")
-#             cols_header_v[4].markdown("**Precio U.**")
-#             cols_header_v[5].markdown("**Fecha**")
-#             cols_header_v[6].markdown("**Total**")
-#             cols_header_v[7].markdown("**Pago**")
-#             st.markdown("---")
-# 
-#             for doc in ventas_en_base:
-#                 cols_row_v = st.columns(proporciones_v)
-#                 cols_row_v[0].write(str(doc.get('id', '')))
-#                 cols_row_v[1].write(doc.get('cliente', ''))
-#                 cols_row_v[2].write(doc.get('producto', ''))
-#                 cols_row_v[3].write(str(doc.get('cantidad', '')))
-#                 cols_row_v[4].write(f"${doc.get('precio_unitario', 0)}")
-#                 cols_row_v[5].write(doc.get('fecha', ''))
-#                 cols_row_v[6].write(f"${doc.get('precio', 0)}")
-#                 cols_row_v[7].write(doc.get('metodo_pago', ''))
-# 
-#     with tab_v_nueva:
-#         st.subheader("Nueva Venta")
-#         col_v1, col_v2 = st.columns([1, 1])
-# 
-#         if productos_en_base:
-#             dict_prod_ventas = {f"{p['nombre']} (${p['precio']})": p for p in productos_en_base}
-#             prod_seleccionado_venta = st.selectbox("Producto:", dict_prod_ventas.keys(), key="sel_p_v")
-#             info_p = dict_prod_ventas[prod_seleccionado_venta]
-# 
-#             with st.form("form_ventas_nueva"):
-#                 with col_v1:
-#                     v_id = st.number_input("ID de Venta", min_value=1, step=1, value=len(ventas_en_base) + 1)
-#                     v_cliente = st.text_input("Cliente", value="Laura Diaz")
-#                     v_cantidad = st.number_input("Cantidad", min_value=1, step=1, value=1)
-#                 with col_v2:
-#                     v_metodo = st.selectbox("Método de Pago", ["Tarjeta", "Efectivo", "Transferencia"])
-#                     v_fecha = st.date_input("Fecha", value=datetime.now())
-# 
-#                 if st.form_submit_button("agregar venta "):
-#                     if v_cantidad > info_p.get('stock', 0):
-#                         st.error(f"❌ Stock insuficiente. Solo quedan {info_p.get('stock', 0)} unidades.")
-#                     else:
-#                         total_calculado = int(info_p.get('precio', 0) * v_cantidad)
-# 
-#                         coleccion_ventas.insert_one({
-#                             "id": int(v_id), "cliente": v_cliente, "producto": info_p.get('nombre', ''),
-#                             "cantidad": int(v_cantidad), "precio_unitario": int(info_p.get('precio', 0)),
-#                             "fecha": v_fecha.strftime("%Y-%m-%d"), "precio": total_calculado, "metodo_pago": v_metodo
-#                         })
-# 
-#                         coleccion_prod.update_one(
-#                             {"_id": info_p["_id"]}, {"$inc": {"stock": -int(v_cantidad)}}
-#                         )
-#                         st.success(f"Venta nueva registrada. Código: #{v_id} - Pago: ${total_calculado}")
-#                         st.rerun()
-# 
-#     with tab_v_editar:
-#         st.subheader("Editar Venta")
-#         if ventas_en_base:
-#             opciones_ventas = {f"Venta #{v.get('id', '')} - {v.get('cliente', '')} ({v.get('producto', '')})": v for v in ventas_en_base}
-#             seleccion_v = st.selectbox("Venta a modificar:", opciones_ventas.keys())
-#             venta_actual = opciones_ventas[seleccion_v]
-# 
-#             with st.form("form_ventas_editar"):
-#                 col_ve1, col_ve2 = st.columns(2)
-#                 with col_ve1:
-#                     edit_v_cliente = st.text_input("Cliente", value=venta_actual.get('cliente', ''))
-#                     edit_v_producto = st.text_input("Producto", value=venta_actual.get('producto', ''))
-#                     edit_v_cant = st.number_input("Cantidad", min_value=1, value=int(venta_actual.get('cantidad', 1)))
-#                 with col_ve2:
-#                     edit_v_precio_u = st.number_input("Precio Unitario", min_value=0, value=int(venta_actual.get('precio_unitario', 0)))
-#                     edit_v_metodo = st.selectbox("Metodo de pago", ["Tarjeta", "Efectivo", "Transferencia"], index=["Tarjeta", "Efectivo", "Transferencia"].index(venta_actual.get('metodo_pago', 'Tarjeta')) if venta_actual.get('metodo_pago', 'Tarjeta') in ["Tarjeta", "Efectivo", "Transferencia"] else 0)
-#                     edit_v_fecha = st.text_input("Fecha", value=venta_actual.get('fecha', ''))
-# 
-#                 if st.form_submit_button("Guardar Venta"):
-#                     nuevo_total = edit_v_cant * edit_v_precio_u
-#                     coleccion_ventas.update_one(
-#                         {"_id": venta_actual["_id"]},
-#                         {"$set": {
-#                             "cliente": edit_v_cliente, "producto": edit_v_producto,
-#                             "cantidad": int(edit_v_cant), "precio_unitario": int(edit_v_precio_u),
-#                             "precio": int(nuevo_total), "metodo_pago": edit_v_metodo, "fecha": edit_v_fecha
-#                         }}
-#                     )
-#                     st.success("Venta modificada!")
-#                     st.rerun()
-# 
-#     with tab_v_total:
-#         st.subheader("Totales")
-#         if ventas_en_base:
-#             sumatoria_ventas = sum([v.get('precio', 0) for v in ventas_en_base])
-# 
-#             c_tot1, c_tot2 = st.columns(2)
-#             with c_tot1:
-#                 st.metric(label=" RECAUDADO TOTAL", value=f"${sumatoria_ventas:,.2f}")
-#             with c_tot2:
-#                 st.metric(label=" TICKETS ", value=len(ventas_en_base))
-# 
-#             st.markdown("---")
-#             st.write("Informacion del total:")
-#             df_v_tot = pd.DataFrame(ventas_en_base)
-#             if 'metodo_pago' in df_v_tot.columns and 'precio' in df_v_tot.columns:
-#                 resumen_pagos = df_v_tot.groupby('metodo_pago')['precio'].sum().reset_index()
-#                 resumen_pagos.columns = ['Metodo de Pago', 'Total']
-#                 st.table(resumen_pagos)
-# 
-# elif menu_principal == "📦 Productos":
-#     st.title("📦 Inventario de Productos")
-#     st.write("Registro para productos de la empresa Walmart. ")
-#     st.markdown("---")
-# 
-#     tab_ver, tab_agregar, tab_editar, tab_eliminar = st.tabs([
-#         "🔍 Catálogo Visual", "➕ Nuevo Producto", "✏️ Editar Producto", "Eliminar Producto ❌"
-#     ])
-# 
-#     with tab_ver:
-#         st.subheader("Productos")
-#         if productos_en_base:
-#             proporciones = [0.6, 2.2, 0.9, 0.9, 1.4, 1.4, 3.0, 2.1]
-#             cols_header = st.columns(proporciones)
-#             cols_header[0].markdown("**ID**")
-#             cols_header[1].markdown("**Nombre**")
-#             cols_header[2].markdown("**Precio**")
-#             cols_header[3].markdown("**Stock**")
-#             cols_header[4].markdown("**Categoria**")
-#             cols_header[5].markdown("**Proveedor**")
-#             cols_header[6].markdown("**Descripcion**")
-#             cols_header[7].markdown("**Fecha Caducidad**")
-#             st.markdown("---")
-# 
-#             for doc in productos_en_base:
-#                 cols_row = st.columns(proporciones)
-#                 cols_row[0].write(str(doc.get('id', '')))
-#                 cols_row[1].write(doc.get('nombre', ''))
-#                 cols_row[2].write(f"${doc.get('precio', 0)}")
-#                 cols_row[3].write(str(doc.get('stock', 0)))
-#                 cols_row[4].write(doc.get('categoria', ''))
-#                 cols_row[5].write(doc.get('proveedor', ''))
-#                 cols_row[6].write(doc.get('descripcion', ''))
-# 
-#                 fecha = doc.get('fecha_caducidad', '')
-#                 fecha_str = fecha.strftime('%Y-%m-%d') if hasattr(fecha, 'strftime') else str(fecha).split(" ")[0]
-#                 cols_row[7].write(fecha_str)
-# 
-#     with tab_agregar:
-#         st.subheader("Registrar producto")
-#         with st.form("form_crear"):
-#             col1, col2 = st.columns(2)
-#             with col1:
-#                 nuevo_id = st.number_input("ID numerico", min_value=1, step=1, value=73)
-#                 nuevo_nombre = st.text_input("Nombre del producto")
-#                 nuevo_precio = st.number_input("Precio ", min_value=0.0, step=0.5, value=20.0)
-#                 nuevo_stock = st.number_input("Stock ", min_value=0, step=1, value=10)
-#             with col2:
-#                 nueva_categoria = st.text_input("Categoria", value="Bebidas")
-#                 nuevo_proveedor = st.text_input("Proveedor", value="Del Valle")
-#                 nueva_fecha = st.date_input("Fecha de Caducidad", value=datetime.now())
-#                 nueva_descripcion = st.text_area("Descripcion")
-# 
-#             boton_guardar = st.form_submit_button("Guardar producto")
-#             if boton_guardar:
-#                 if nuevo_nombre.strip() == "":
-#                     st.error("El nombre no puede estar vacío.")
-#                 else:
-#                     coleccion_prod.insert_one({
-#                         "id": int(nuevo_id), "nombre": nuevo_nombre, "precio": nuevo_precio,
-#                         "stock": int(nuevo_stock), "descripcion": nueva_descripcion,
-#                         "categoria": nueva_categoria, "proveedor": nuevo_proveedor,
-#                         "fecha_caducidad": datetime.combine(nueva_fecha, datetime.min.time())
-#                     })
-#                     st.success(f" producto '{nuevo_nombre}' guardado!")
-#                     st.rerun()
-# 
-#     with tab_editar:
-#         st.subheader("editar datos")
-#         if productos_en_base:
-#             opciones_productos = {f"{doc['nombre']} (ID: {doc['id']})": doc for doc in productos_en_base}
-#             seleccion = st.selectbox("articulo a editar:", opciones_productos.keys())
-#             prod_actual = opciones_productos[seleccion]
-# 
-#             with st.form("form_actualizar"):
-#                 col1, col2 = st.columns(2)
-#                 with col1:
-#                     edit_nombre = st.text_input("Nombre", value=prod_actual.get('nombre', ''))
-#                     edit_precio = st.number_input("Precio", min_value=0.0, value=float(prod_actual.get('precio', 0)))
-#                     edit_stock = st.number_input("Stock", min_value=0, value=int(prod_actual.get('stock', 0)))
-#                 with col2:
-#                     edit_categoria = st.text_input("Categoria", value=prod_actual.get('categoria', ''))
-#                     edit_proveedor = st.text_input("Proveedor", value=prod_actual.get('proveedor', ''))
-#                     fecha_g = prod_actual.get('fecha_caducidad', datetime.now())
-#                     if isinstance(fecha_g, str):
-#                         fecha_g = datetime.fromisoformat(fecha_g.replace("Z", ""))
-#                     edit_fecha = st.date_input("Caducidad", value=fecha_g)
-#                     edit_descripcion = st.text_area("Descripción", value=prod_actual.get('descripcion', ''))
-# 
-#                 if st.form_submit_button("Actualizar Cambios"):
-#                     coleccion_prod.update_one(
-#                         {"_id": prod_actual["_id"]},
-#                         {"$set": {
-#                             "nombre": edit_nombre, "precio": edit_precio, "stock": int(edit_stock),
-#                             "descripcion": edit_descripcion, "categoria": edit_categoria,
-#                             "proveedor": edit_proveedor, "fecha_caducidad": datetime.combine(edit_fecha, datetime.min.time())
-#                         }}
-#                     )
-#                     st.success("¡Inventario actualizado!")
-#                     st.rerun()
-# 
-#     with tab_eliminar:
-#         st.subheader("Eliminar Articulos")
-#         if productos_en_base:
-#             opciones_eliminar = {f"{doc['nombre']} (ID: {doc['id']})": doc for doc in productos_en_base}
-#             seleccion_eliminar = st.selectbox("articulo a eliminar:", opciones_eliminar.keys(), key="del_p")
-#             prod_a_borrar = opciones_eliminar[seleccion_eliminar]
-# 
-#             if st.button("seguro que quieres eliminar este articulo:", type="primary"):
-#                 coleccion_prod.delete_one({"_id": prod_a_borrar["_id"]})
-#                 st.success(f"Artículo '{prod_a_borrar['nombre']}' eliminado.")
-#                 st.rerun()
+import streamlit as st
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+import pandas as pd
+from datetime import datetime
+
+# Tratamos de leer la URI desde tus Secrets de Streamlit. 
+# Si no los has configurado, usamos la cadena directa como respaldo.
+try:
+    URI = st.secrets["mongo_uri"]
+except Exception:
+    URI = "mongodb+srv://dreamgood:elmdelaw@cluster0.bwicjno.mongodb.net/?appName=Cluster0"
+
+@st.cache_resource
+def init_connection():
+    return MongoClient(URI)
+
+try:
+    cliente_mongo = init_connection()
+    db = cliente_mongo["walmart"]
+    coleccion_prod = db["productos"]
+    coleccion_ventas = db["ventas"]
+    coleccion_clientes = db["clientes"]
+except Exception as e:
+    st.error(f"Error al conectar la Base de Datos: {e}")
+
+st.set_page_config(page_title="Walmart Admin Pro", layout="wide")
+
+with st.sidebar:
+    # Si no tienes el archivo 'walmart.png' subido a GitHub, 
+    # cambiamos st.image por un título de texto para evitar que la app falle.
+    try:
+        st.image("walmart.png", use_container_width=True)
+    except Exception:
+        st.title("🛒 Walmart Admin")
+
+    st.markdown("### 📌 Panel de Control")
+
+    menu_principal = st.radio(
+        "Navegación",
+        ["👥 Clientes", "📈 Ventas", "📦 Productos"],
+        label_visibility="collapsed"
+    )
+    st.markdown("---")
+    st.caption(f"Fecha: {datetime.now().strftime('%d/%m/%Y')}")
+    st.caption("Cajero: Cluster_0")
+
+try:
+    productos_en_base = list(coleccion_prod.find())
+    clientes_en_base = list(coleccion_clientes.find())
+    ventas_en_base = list(coleccion_ventas.find())
+except Exception as e:
+    productos_en_base, clientes_en_base, ventas_en_base = [], [], []
+
+if menu_principal == "👥 Clientes":
+    st.title("👥 Registro de Clientes")
+    st.write("Registro de todos los clientes que compran y reclaman.")
+    st.markdown("---")
+
+    tab_c_ver, tab_c_nuevo, tab_c_editar, tab_c_frecuentes = st.tabs([
+        "🔍 Catálogo Clientes", "➕ Cliente Nuevo", "✏️ Editar Cliente", "📊 Clientes Mas Frecuentes"
+    ])
+
+    with tab_c_ver:
+        st.subheader("Clientes")
+        if clientes_en_base:
+            proporciones_c = [0.6, 1.5, 1.5, 1.2, 2.2, 0.8, 1.0, 2.5]
+            cols_header_c = st.columns(proporciones_c)
+            cols_header_c[0].markdown("**ID**")
+            cols_header_c[1].markdown("**Nombre**")
+            cols_header_c[2].markdown("**Apellido**")
+            cols_header_c[3].markdown("**Teléfono**")
+            cols_header_c[4].markdown("**Correo**")
+            cols_header_c[5].markdown("**Edad**")
+            cols_header_c[6].markdown("**Género**")
+            cols_header_c[7].markdown("**Dirección**")
+            st.markdown("---")
+
+            for doc in clientes_en_base:
+                cols_row_c = st.columns(proporciones_c)
+                cols_row_c[0].write(str(doc.get('id', '')))
+                cols_row_c[1].write(doc.get('nombre', ''))
+                cols_row_c[2].write(doc.get('apellido', ''))
+                cols_row_c[3].write(doc.get('telefono', ''))
+                cols_row_c[4].write(doc.get('correo', ''))
+                cols_row_c[5].write(str(doc.get('edad', '')))
+                cols_row_c[6].write(doc.get('genero', ''))
+                cols_row_c[7].write(doc.get('direccion', ''))
+
+    with tab_c_nuevo:
+        st.subheader("Registro")
+        with st.form("form_clientes_nuevo"):
+            col1, col2 = st.columns(2)
+            with col1:
+                c_id = st.number_input("ID de Cliente", min_value=1, step=1, value=len(clientes_en_base) + 1)
+                c_nombre = st.text_input("Nombre:", placeholder="Ej. Juan")
+                c_apellido = st.text_input("Apellido:", placeholder="Ej. Perez")
+                c_telefono = st.text_input("Telefono:", placeholder="Ej. 7471110001")
+            with col2:
+                c_correo = st.text_input("Correo:", placeholder="Ej. juan.perez@gmail.com")
+                c_edad = st.number_input("Edad:", min_value=1, max_value=120, value=28)
+                c_genero = st.selectbox("Genero:", ["Masculino", "Femenino"])
+                c_direccion = st.text_input("Direccion:", value="Chilpancingo, Guerrero")
+
+            enviar_cliente = st.form_submit_button("Registrar")
+            if enviar_cliente:
+                if c_nombre.strip() == "" or c_apellido.strip() == "":
+                    st.error("Nombre y apellido obligatorios.")
+                else:
+                    coleccion_clientes.insert_one({
+                        "id": int(c_id), "nombre": c_nombre, "apellido": c_apellido,
+                        "telefono": c_telefono, "correo": c_correo, "edad": int(c_edad),
+                        "genero": c_genero, "direccion": c_direccion
+                    })
+                    st.success(f"El cliente '{c_nombre} {c_apellido}' ha sido registrado!")
+                    st.rerun()
+
+    with tab_c_editar:
+        st.subheader("Editar Información Cliente")
+        if clientes_en_base:
+            opciones_clientes = {f"{c.get('nombre', '')} {c.get('apellido', '')} (ID: {c.get('id', '')})": c for c in clientes_en_base}
+            seleccion_c = st.selectbox("Cliente a editar:", opciones_clientes.keys())
+            cliente_actual = opciones_clientes[seleccion_c]
+
+            with st.form("form_clientes_editar"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    edit_c_nombre = st.text_input("Nombre", value=cliente_actual.get('nombre', ''))
+                    edit_c_apellido = st.text_input("Apellido", value=cliente_actual.get('apellido', ''))
+                    edit_c_telefono = st.text_input("Telefono", value=cliente_actual.get('telefono', ''))
+                with col2:
+                    edit_c_correo = st.text_input("Correo", value=cliente_actual.get('correo', ''))
+                    edit_c_edad = st.number_input("Edad", min_value=1, max_value=120, value=int(cliente_actual.get('edad', 25)))
+                    edit_c_genero = st.selectbox("Genero", ["Masculino", "Femenino"], index=["Masculino", "Femenino"].index(cliente_actual.get('genero', 'Masculino')) if cliente_actual.get('genero', 'Masculino') in ["Masculino", "Femenino"] else 0)
+                    edit_c_direccion = st.text_input("Direccion", value=cliente_actual.get('direccion', ''))
+
+                if st.form_submit_button("Guardar"):
+                    coleccion_clientes.update_one(
+                        {"_id": cliente_actual["_id"]},
+                        {"$set": {
+                            "nombre": edit_c_nombre, "apellido": edit_c_apellido,
+                            "telefono": edit_c_telefono, "correo": edit_c_correo,
+                            "edad": int(edit_c_edad), "genero": edit_c_genero,
+                            "direccion": edit_c_direccion
+                        }}
+                    )
+                    st.success("¡Se ha actualizado correctamente!")
+                    st.rerun()
+
+    with tab_c_frecuentes:
+        st.subheader("Clientes Frecuentes")
+        if ventas_en_base:
+            df_v = pd.DataFrame(ventas_en_base)
+            if 'cliente' in df_v.columns:
+                conteo_compras = df_v['cliente'].value_counts().reset_index()
+                conteo_compras.columns = ['Cliente', 'Total de Compras']
+                monto_total = df_v.groupby('cliente')['precio'].sum().reset_index()
+                monto_total.columns = ['Cliente', 'Monto Total Invertido ($)']
+                tabla_frecuentes = pd.merge(conteo_compras, monto_total, on='Cliente').sort_values(by='Total de Compras', ascending=False)
+                st.dataframe(tabla_frecuentes, use_container_width=True)
+
+elif menu_principal == "📈 Ventas":
+    st.title("📈 Tickets de Ventas")
+    st.write("Lista de todas las ventas en el Walmart.")
+    st.markdown("---")
+
+    tab_v_ver, tab_v_nueva, tab_v_editar, tab_v_total = st.tabs([
+        "🔍 Catalogo Visual", "➕ Venta Nueva", "✏️ Editar Venta", "📊 Total de Ventas"
+    ])
+
+    with tab_v_ver:
+        st.subheader("Tickets")
+        if ventas_en_base:
+            proporciones_v = [0.6, 2.0, 2.0, 0.9, 1.2, 1.4, 1.2, 1.4]
+            cols_header_v = st.columns(proporciones_v)
+            cols_header_v[0].markdown("**ID**")
+            cols_header_v[1].markdown("**Cliente**")
+            cols_header_v[2].markdown("**Producto**")
+            cols_header_v[3].markdown("**Cant.**")
+            cols_header_v[4].markdown("**Precio U.**")
+            cols_header_v[5].markdown("**Fecha**")
+            cols_header_v[6].markdown("**Total**")
+            cols_header_v[7].markdown("**Pago**")
+            st.markdown("---")
+
+            for doc in ventas_en_base:
+                cols_row_v = st.columns(proporciones_v)
+                cols_row_v[0].write(str(doc.get('id', '')))
+                cols_row_v[1].write(doc.get('cliente', ''))
+                cols_row_v[2].write(doc.get('producto', ''))
+                cols_row_v[3].write(str(doc.get('cantidad', '')))
+                cols_row_v[4].write(f"${doc.get('precio_unitario', 0)}")
+                cols_row_v[5].write(doc.get('fecha', ''))
+                cols_row_v[6].write(f"${doc.get('precio', 0)}")
+                cols_row_v[7].write(doc.get('metodo_pago', ''))
+
+    with tab_v_nueva:
+        st.subheader("Nueva Venta")
+        col_v1, col_v2 = st.columns([1, 1])
+
+        if productos_en_base:
+            dict_prod_ventas = {f"{p['nombre']} (${p['precio']})": p for p in productos_en_base}
+            prod_seleccionado_venta = st.selectbox("Producto:", dict_prod_ventas.keys(), key="sel_p_v")
+            info_p = dict_prod_ventas[prod_seleccionado_venta]
+
+            with st.form("form_ventas_nueva"):
+                with col_v1:
+                    v_id = st.number_input("ID de Venta", min_value=1, step=1, value=len(ventas_en_base) + 1)
+                    v_cliente = st.text_input("Cliente", value="Laura Diaz")
+                    v_cantidad = st.number_input("Cantidad", min_value=1, step=1, value=1)
+                with col_v2:
+                    v_metodo = st.selectbox("Método de Pago", ["Tarjeta", "Efectivo", "Transferencia"])
+                    v_fecha = st.date_input("Fecha", value=datetime.now())
+
+                if st.form_submit_button("Agregar Venta"):
+                    if v_cantidad > info_p.get('stock', 0):
+                        st.error(f"❌ Stock insuficiente. Solo quedan {info_p.get('stock', 0)} unidades.")
+                    else:
+                        total_calculado = int(info_p.get('precio', 0) * v_cantidad)
+
+                        coleccion_ventas.insert_one({
+                            "id": int(v_id), "cliente": v_cliente, "producto": info_p.get('nombre', ''),
+                            "cantidad": int(v_cantidad), "precio_unitario": int(info_p.get('precio', 0)),
+                            "fecha": v_fecha.strftime("%Y-%m-%d"), "precio": total_calculado, "metodo_pago": v_metodo
+                        })
+
+                        coleccion_prod.update_one(
+                            {"_id": info_p["_id"]}, {"$inc": {"stock": -int(v_cantidad)}}
+                        )
+                        st.success(f"Venta nueva registrada. Código: #{v_id} - Pago: ${total_calculado}")
+                        st.rerun()
+
+    with tab_v_editar:
+        st.subheader("Editar Venta")
+        if ventas_en_base:
+            opciones_ventas = {f"Venta #{v.get('id', '')} - {v.get('cliente', '')} ({v.get('producto', '')})": v for v in ventas_en_base}
+            seleccion_v = st.selectbox("Venta a modificar:", opciones_ventas.keys())
+            venta_actual = opciones_ventas[seleccion_v]
+
+            with st.form("form_ventas_editar"):
+                col_ve1, col_ve2 = st.columns(2)
+                with col_ve1:
+                    edit_v_cliente = st.text_input("Cliente", value=venta_actual.get('cliente', ''))
+                    edit_v_producto = st.text_input("Producto", value=venta_actual.get('producto', ''))
+                    edit_v_cant = st.number_input("Cantidad", min_value=1, value=int(venta_actual.get('cantidad', 1)))
+                with col_ve2:
+                    edit_v_precio_u = st.number_input("Precio Unitario", min_value=0, value=int(venta_actual.get('precio_unitario', 0)))
+                    edit_v_metodo = st.selectbox("Metodo de pago", ["Tarjeta", "Efectivo", "Transferencia"], index=["Tarjeta", "Efectivo", "Transferencia"].index(venta_actual.get('metodo_pago', 'Tarjeta')) if venta_actual.get('metodo_pago', 'Tarjeta') in ["Tarjeta", "Efectivo", "Transferencia"] else 0)
+                    edit_v_fecha = st.text_input("Fecha", value=venta_actual.get('fecha', ''))
+
+                if st.form_submit_button("Guardar Venta"):
+                    nuevo_total = edit_v_cant * edit_v_precio_u
+                    coleccion_ventas.update_one(
+                        {"_id": venta_actual["_id"]},
+                        {"$set": {
+                            "cliente": edit_v_cliente, "producto": edit_v_producto,
+                            "cantidad": int(edit_v_cant), "precio_unitario": int(edit_v_precio_u),
+                            "precio": int(nuevo_total), "metodo_pago": edit_v_metodo, "fecha": edit_v_fecha
+                        }}
+                    )
+                    st.success("Venta modificada!")
+                    st.rerun()
+
+    with tab_v_total:
+        st.subheader("Totales")
+        if ventas_en_base:
+            sumatoria_ventas = sum([v.get('precio', 0) for v in ventas_en_base])
+
+            c_tot1, c_tot2 = st.columns(2)
+            with c_tot1:
+                st.metric(label=" RECAUDADO TOTAL", value=f"${sumatoria_ventas:,.2f}")
+            with c_tot2:
+                st.metric(label=" TICKETS ", value=len(ventas_en_base))
+
+            st.markdown("---")
+            st.write("Información del total:")
+            df_v_tot = pd.DataFrame(ventas_en_base)
+            if 'metodo_pago' in df_v_tot.columns and 'precio' in df_v_tot.columns:
+                resumen_pagos = df_v_tot.groupby('metodo_pago')['precio'].sum().reset_index()
+                resumen_pagos.columns = ['Metodo de Pago', 'Total']
+                st.table(resumen_pagos)
+
+elif menu_principal == "📦 Productos":
+    st.title("📦 Inventario de Productos")
+    st.write("Registro para productos de la empresa Walmart. ")
+    st.markdown("---")
+
+    tab_ver, tab_agregar, tab_editar, tab_eliminar = st.tabs([
+        "🔍 Catálogo Visual", "➕ Nuevo Producto", "✏️ Editar Producto", "Eliminar Producto ❌"
+    ])
+
+    with tab_ver:
+        st.subheader("Productos")
+        if productos_en_base:
+            proporciones = [0.6, 2.2, 0.9, 0.9, 1.4, 1.4, 3.0, 2.1]
+            cols_header = st.columns(proporciones)
+            cols_header[0].markdown("**ID**")
+            cols_header[1].markdown("**Nombre**")
+            cols_header[2].markdown("**Precio**")
+            cols_header[3].markdown("**Stock**")
+            cols_header[4].markdown("**Categoria**")
+            cols_header[5].markdown("**Proveedor**")
+            cols_header[6].markdown("**Descripcion**")
+            cols_header[7].markdown("**Fecha Caducidad**")
+            st.markdown("---")
+
+            for doc in productos_en_base:
+                cols_row = st.columns(proporciones)
+                cols_row[0].write(str(doc.get('id', '')))
+                cols_row[1].write(doc.get('nombre', ''))
+                cols_row[2].write(f"${doc.get('precio', 0)}")
+                cols_row[3].write(str(doc.get('stock', 0)))
+                cols_row[4].write(doc.get('categoria', ''))
+                cols_row[5].write(doc.get('proveedor', ''))
+                cols_row[6].write(doc.get('descripcion', ''))
+
+                fecha = doc.get('fecha_caducidad', '')
+                fecha_str = fecha.strftime('%Y-%m-%d') if hasattr(fecha, 'strftime') else str(fecha).split(" ")[0]
+                cols_row[7].write(fecha_str)
+
+    with tab_agregar:
+        st.subheader("Registrar producto")
+        with st.form("form_crear"):
+            col1, col2 = st.columns(2)
+            with col1:
+                nuevo_id = st.number_input("ID numerico", min_value=1, step=1, value=73)
+                nuevo_nombre = st.text_input("Nombre del producto")
+                nuevo_precio = st.number_input("Precio ", min_value=0.0, step=0.5, value=20.0)
+                nuevo_stock = st.number_input("Stock ", min_value=0, step=1, value=10)
+            with col2:
+                nueva_categoria = st.text_input("Categoria", value="Bebidas")
+                nuevo_proveedor = st.text_input("Proveedor", value="Del Valle")
+                nueva_fecha = st.date_input("Fecha de Caducidad", value=datetime.now())
+                nueva_descripcion = st.text_area("Descripcion")
+
+            boton_guardar = st.form_submit_button("Guardar producto")
+            if boton_guardar:
+                if nuevo_nombre.strip() == "":
+                    st.error("El nombre no puede estar vacío.")
+                else:
+                    coleccion_prod.insert_one({
+                        "id": int(nuevo_id), "nombre": nuevo_nombre, "precio": nuevo_precio,
+                        "stock": int(nuevo_stock), "descripcion": nueva_descripcion,
+                        "categoria": nueva_categoria, "proveedor": nuevo_proveedor,
+                        "fecha_caducidad": datetime.combine(nueva_fecha, datetime.min.time())
+                    })
+                    st.success(f" producto '{nuevo_nombre}' guardado!")
+                    st.rerun()
+
+    with tab_editar:
+        st.subheader("Editar datos")
+        if productos_en_base:
+            opciones_productos = {f"{doc['nombre']} (ID: {doc['id']})": doc for doc in productos_en_base}
+            seleccion = st.selectbox("articulo a editar:", opciones_productos.keys())
+            prod_actual = opciones_productos[seleccion]
+
+            with st.form("form_actualizar"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    edit_nombre = st.text_input("Nombre", value=prod_actual.get('nombre', ''))
+                    edit_precio = st.number_input("Precio", min_value=0.0, value=float(prod_actual.get('precio', 0)))
+                    edit_stock = st.number_input("Stock", min_value=0, value=int(prod_actual.get('stock', 0)))
+                with col2:
+                    edit_categoria = st.text_input("Categoria", value=prod_actual.get('categoria', ''))
+                    edit_proveedor = st.text_input("Proveedor", value=prod_actual.get('proveedor', ''))
+                    fecha_g = prod_actual.get('fecha_caducidad', datetime.now())
+                    if isinstance(fecha_g, str):
+                        fecha_g = datetime.fromisoformat(fecha_g.replace("Z", ""))
+                    edit_fecha = st.date_input("Caducidad", value=fecha_g)
+                    edit_descripcion = st.text_area("Descripción", value=prod_actual.get('descripcion', ''))
+
+                if st.form_submit_button("Actualizar Cambios"):
+                    coleccion_prod.update_one(
+                        {"_id": prod_actual["_id"]},
+                        {"$set": {
+                            "nombre": edit_nombre, "precio": edit_precio, "stock": int(edit_stock),
+                            "descripcion": edit_descripcion, "categoria": edit_categoria,
+                            "proveedor": edit_proveedor, "fecha_caducidad": datetime.combine(edit_fecha, datetime.min.time())
+                        }}
+                    )
+                    st.success("¡Inventario actualizado!")
+                    st.rerun()
+
+    with tab_eliminar:
+        st.subheader("Eliminar Articulos")
+        if productos_en_base:
+            opciones_eliminar = {f"{doc['nombre']} (ID: {doc['id']})": doc for doc in productos_en_base}
+            seleccion_eliminar = st.selectbox("articulo a eliminar:", opciones_eliminar.keys(), key="del_p")
+            prod_a_borrar = opciones_eliminar[seleccion_eliminar]
+
+            if st.button("seguro que quieres eliminar este articulo:", type="primary"):
+                coleccion_prod.delete_one({"_id": prod_a_borrar["_id"]})
+                st.success(f"Artículo '{prod_a_borrar['nombre']}' eliminado.")
+                st.rerun()
